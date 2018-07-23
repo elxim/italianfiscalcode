@@ -1,0 +1,18 @@
+node {
+    withMaven(maven:'maven') {
+    	dir('../codicefiscale@script') {
+        	stage('Build') {
+        	   	sh 'mvn clean install -DskipTests'
+            	def pom = readMavenPom file:'pom.xml'
+            	print pom.version
+            	env.version = pom.version
+            }
+	        stage('Image') {
+    	        docker.withRegistry('http://docker.rete.dom:5000/') {
+                	def app = docker.build "docker.rete.dom:5000/codicefiscale:${env.version}"
+                	app.push("${env.version}")
+            	}
+        	}
+        }
+    }
+}
